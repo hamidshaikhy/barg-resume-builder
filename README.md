@@ -94,7 +94,7 @@
 
 ## ده قالب
 
-[![ده قالب برگ، هر کدام با یکی از رنگ‌بندی‌هایش](docs/screenshots/templates.png)](docs/screenshots/templates.png)
+[![ده قالب برگ، هر کدام با یکی از رنگ‌بندی‌هایش](docs/screenshots/templates-gallery.png)](docs/screenshots/templates-gallery.png)
 
 به ترتیب از راست، ردیف بالا و بعد ردیف پایین:
 
