@@ -1,0 +1,779 @@
+/*
+ * صفحه‌ی نخست: یک داستان اسکرولی.
+ * موتور اسکرول (scroll.ts) پیشرفت هر بخش را از ۰ تا ۱ در متغیر --p می‌نویسد و همه‌ی حرکت‌های زیر با calc() از آن
+ * ساخته می‌شوند؛ پس React فقط در گام‌های درشت دوباره رندر می‌شود.
+ * ایده‌ی حرکت‌ها از صفحه‌ی نخست Reactive Resume (مجوز MIT) گرفته شده و برای فارسی و راست‌به‌چپ از نو نوشته شده است.
+ */
+
+/* در نمایشگرهای کوتاه زیرنویس‌های فرعی پنهان می‌شوند تا روی هم نیفتند. */
+@custom-variant short (@media (height < 720px));
+/* فقط وقتی صفحه‌ی نخست تیره است. */
+@custom-variant dk (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@theme inline {
+  --color-l-bg: var(--l-bg);
+  --color-l-surface: var(--l-surface);
+  --color-l-raised: var(--l-raised);
+  --color-l-line: var(--l-line);
+  --color-l-line-2: var(--l-line-2);
+  --color-l-ink: var(--l-ink);
+  --color-l-ink-2: var(--l-ink-2);
+  --color-l-ink-3: var(--l-ink-3);
+  --color-l-accent: var(--l-accent);
+  --color-l-accent-hover: var(--l-accent-hover);
+  --color-l-on-accent: var(--l-on-accent);
+  --color-l-accent-soft: var(--l-accent-soft);
+  --color-l-accent-text: var(--l-accent-text);
+  --color-l-hover: var(--l-hover);
+  --color-l-graphite: var(--l-graphite);
+  --shadow-l-paper: var(--l-paper-shadow);
+  --shadow-l-2: var(--l-shadow-2);
+  --shadow-l-3: var(--l-shadow-3);
+  --font-l-serif: 'Markazi Text Variable', 'Noto Naskh Arabic Variable', serif;
+  --font-l-naskh: 'Noto Naskh Arabic Variable', serif;
+  --font-l-sans: 'Noto Sans Arabic Variable', 'Vazirmatn Variable', sans-serif;
+  --font-l-mono: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Consolas, monospace;
+}
+
+@theme {
+  --animate-l-breathe: l-breathe 16s ease-in-out infinite alternate;
+  --animate-l-drift: l-drift 90s ease-in-out infinite alternate;
+  --animate-l-mote: l-mote var(--mote-duration) linear var(--mote-delay) infinite;
+  --animate-l-swing: l-swing 7s ease-in-out 2s infinite;
+  --animate-l-flicker: l-flicker 0.6s ease-out 1;
+  --animate-l-turn: l-turn 0.9s cubic-bezier(0.77, 0, 0.175, 1) backwards;
+
+  @keyframes l-breathe {
+    from {
+      opacity: 0.7;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes l-drift {
+    from {
+      transform: skewX(16deg) rotate(8deg) translate3d(3%, -2%, 0);
+    }
+    to {
+      transform: skewX(11deg) rotate(4deg) translate3d(-6%, 4%, 0);
+    }
+  }
+  @keyframes l-mote {
+    0% {
+      transform: translate(0, 0);
+      opacity: 0;
+    }
+    15% {
+      opacity: 1;
+    }
+    85% {
+      opacity: 0.8;
+    }
+    100% {
+      transform: translate(var(--dx), var(--dy));
+      opacity: 0;
+    }
+  }
+  /* بند لامپ فقط در ۱۴ درصد آخر هر دور تاب می‌خورد؛ یک تلنگر است، نه حرکت دائمی. */
+  @keyframes l-swing {
+    0%,
+    86%,
+    100% {
+      rotate: 0deg;
+    }
+    89% {
+      rotate: -7deg;
+    }
+    92% {
+      rotate: 5deg;
+    }
+    95% {
+      rotate: -3deg;
+    }
+    98% {
+      rotate: 1deg;
+    }
+  }
+  @keyframes l-flicker {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    40% {
+      opacity: 0.55;
+    }
+    45% {
+      opacity: 1;
+    }
+    70% {
+      opacity: 0.8;
+    }
+  }
+  @keyframes l-turn {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-1.3em);
+    }
+  }
+}
+
+/* ---------- رنگ‌ها: تیره پیش‌فرض است و لامپ آن را روشن می‌کند ---------- */
+
+.landing {
+  --gutter: clamp(18px, 3vw, 44px);
+  /* حرکت‌های افقی که جهت دارند در این ضرب می‌شوند؛ صفحه همیشه راست‌به‌چپ است. */
+  --dir: -1;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --sheet-ink: oklch(0.3 0.01 95);
+
+  --l-bg: oklch(0.17 0.006 95);
+  --l-surface: oklch(0.2 0.006 95);
+  --l-raised: oklch(0.235 0.007 95);
+  --l-line: oklch(0.29 0.007 95);
+  --l-line-2: oklch(0.4 0.008 95);
+  --l-ink: oklch(0.95 0.005 95);
+  --l-ink-2: oklch(0.79 0.008 95);
+  --l-ink-3: oklch(0.67 0.008 95);
+  --l-accent: oklch(0.74 0.12 150);
+  --l-accent-hover: oklch(0.8 0.12 150);
+  --l-on-accent: oklch(0.18 0.03 150);
+  --l-accent-soft: oklch(0.3 0.05 150);
+  --l-accent-text: oklch(0.82 0.11 150);
+  --l-hover: oklch(1 0 0 / 0.06);
+  --l-graphite: oklch(0.9 0.01 95 / 0.18);
+  --l-doodle: oklch(0.92 0.01 95);
+  --l-doodle-opacity: 0.42;
+  /* دو رنگ تیتر «طراحی» وقتی قالب‌ها عوض می‌شوند */
+  --l-tone-1: oklch(0.76 0.09 205);
+  --l-tone-2: oklch(0.74 0.13 30);
+  --l-paper-shadow: 0 1px 2px oklch(0 0 0 / 0.5), 0 40px 80px -30px oklch(0 0 0 / 0.8);
+  --l-shadow-2: 0 1px 2px oklch(0 0 0 / 0.4), 0 10px 24px -10px oklch(0 0 0 / 0.6);
+  --l-shadow-3: 0 2px 6px oklch(0 0 0 / 0.4), 0 24px 56px -20px oklch(0 0 0 / 0.75);
+
+  color-scheme: dark;
+}
+
+.landing[data-theme='light'] {
+  --l-bg: oklch(0.975 0.005 95);
+  --l-surface: oklch(0.995 0.002 95);
+  --l-raised: oklch(1 0 0);
+  --l-line: oklch(0.9 0.006 95);
+  --l-line-2: oklch(0.82 0.008 95);
+  --l-ink: oklch(0.22 0.01 95);
+  --l-ink-2: oklch(0.42 0.01 95);
+  --l-ink-3: oklch(0.53 0.01 95);
+  --l-accent: oklch(0.5 0.1 150);
+  --l-accent-hover: oklch(0.44 0.1 150);
+  --l-on-accent: oklch(0.99 0.01 150);
+  --l-accent-soft: oklch(0.94 0.035 150);
+  --l-accent-text: oklch(0.42 0.1 150);
+  --l-hover: oklch(0.22 0.01 95 / 0.05);
+  --l-graphite: oklch(0.38 0.01 95 / 0.3);
+  --l-doodle: oklch(0.3 0.01 95);
+  --l-doodle-opacity: 0.72;
+  --l-tone-1: oklch(0.48 0.09 205);
+  --l-tone-2: oklch(0.52 0.15 30);
+  --l-paper-shadow:
+    0 1px 2px oklch(0.2 0.01 95 / 0.12), 0 40px 80px -30px oklch(0.2 0.01 95 / 0.5), 0 0 0 1px oklch(0.2 0.01 95 / 0.04);
+  --l-shadow-2: 0 1px 2px oklch(0.2 0.01 95 / 0.08), 0 8px 20px -10px oklch(0.2 0.01 95 / 0.25);
+  --l-shadow-3: 0 2px 6px oklch(0.2 0.01 95 / 0.08), 0 24px 50px -22px oklch(0.2 0.01 95 / 0.4);
+
+  color-scheme: light;
+}
+
+/* پشت صفحه هم هم‌رنگ می‌شود تا کشیدن بیش از اندازه‌ی اسکرول لبه‌ی سفید نشان ندهد. */
+body:has(.landing) {
+  background: oklch(0.17 0.006 95);
+  transition: background-color 0.4s;
+}
+body:has(.landing[data-theme='light']) {
+  background: oklch(0.975 0.005 95);
+}
+html:has(.landing[data-theme='dark']) {
+  color-scheme: dark;
+}
+
+.landing [data-scene] {
+  --p: 0;
+}
+
+/* با «کاهش حرکت» هر صحنه در حالت پایانی‌اش دیده می‌شود. */
+@media (prefers-reduced-motion: reduce) {
+  .landing [data-scene] {
+    --p: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.landing) {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* ---------- پایه‌ها ---------- */
+
+  /* یک طرح مدادی که با پاک‌شدن یک ماسک مورب، از --wipe ۰ تا ۱، کشیده می‌شود. */
+  .doodle {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
+    color: var(--l-doodle);
+    opacity: calc(var(--l-doodle-opacity) * var(--doodle-fade, 1));
+    mask-image: linear-gradient(110deg, #000 40%, transparent 60%);
+    mask-size: 300% 100%;
+    mask-repeat: no-repeat;
+    mask-position: calc((1 - var(--wipe, 1)) * 100%) 0;
+    transition: mask-position 0.35s linear;
+
+    & svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+  }
+
+  /* یک حرفِ متنِ تایپی: وقتی --typed از جایگاهش (--f) بگذرد پیدا می‌شود. حرف محتوای ساختگی است تا متن یک بار در صفحه باشد. */
+  .typed {
+    opacity: clamp(0, calc((var(--typed) - var(--f)) * var(--typed-rate, 90)), 1);
+
+    &::before {
+      content: attr(data-char);
+    }
+  }
+
+  .paper-sheet {
+    container-type: inline-size;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: 2px;
+    background: #fff;
+    text-align: start;
+    user-select: none;
+  }
+
+  /* یک بخش برگه که در صحنه‌ی «چیدمان» با رسیدن نخ پررنگ می‌شود. */
+  .sheet-section {
+    opacity: calc(0.28 + 0.72 * var(--k-on, 1));
+    transition: opacity 0.3s;
+  }
+  .sheet-keyword {
+    margin-inline: -0.5cqw;
+    border-radius: 0.5cqw;
+    padding-inline: 0.5cqw;
+    background: color-mix(in oklch, oklch(0.88 0.1 150) calc(var(--k, 0) * 100%), transparent);
+  }
+
+  /* ---------- ۰. سرآغاز ---------- */
+
+  .hero-stage {
+    --pw: min(46vw, 30vh);
+    --pt: calc(150px + 37vw + var(--pw) * 0.707);
+    --e: clamp(0, (var(--p) - 0.03) / 0.36, 1);
+    --e2: clamp(0, (var(--p) - 0.14) / 0.36, 1);
+
+    @media (width >= 900px) {
+      --pw: min(24vw, 46vh);
+      --pt: 50%;
+    }
+    @media (width >= 900px) and (height < 720px) {
+      --pw: min(24vw, 40vh);
+    }
+  }
+
+  .hero-fragment {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    white-space: nowrap;
+    opacity: calc(1 - clamp(0, (var(--e) - 0.7) * 3.4, 1));
+    transform: translate(-50%, -50%)
+      translate(
+        calc(var(--x) * (1 - var(--e)) + var(--tx) * var(--e) + var(--mx, 0) * var(--z) * 28px),
+        calc(var(--y) * 0.78 * (1 - var(--e)) + var(--ty) * var(--e) + var(--my, 0) * var(--z) * 20px)
+      )
+      rotate(calc(var(--r) * (1 - var(--e)))) scale(calc(var(--s) + (0.3 - var(--s)) * var(--e)));
+    transition: transform 0.7s var(--ease);
+  }
+
+  .hero-page {
+    position: absolute;
+    top: var(--pt);
+    left: 50%;
+    width: var(--pw);
+    aspect-ratio: 210 / 297;
+    opacity: var(--e2);
+    transform: translate(-50%, -50%) perspective(1600px) rotateX(calc((1 - var(--e2)) * 50deg))
+      rotateZ(calc((1 - var(--e2)) * 6deg)) scale(calc(0.6 + var(--e2) * 0.4));
+    transition: transform 0.5s var(--ease);
+  }
+
+  /* «سال‌ها تجربه،» اول وسط و درشت است و بعد کنار برگه می‌نشیند. */
+  .hero-head-start {
+    inset-inline-end: calc(50% + var(--pw) / 2 + 2.6vw);
+    transform-origin: 0% 50%;
+    transform: translate(
+        calc(var(--dir) * (1 - var(--e)) * ((1 + (1 - var(--e)) * 0.45) * 50% + var(--pw) / 2 + 2.6vw)),
+        -50%
+      )
+      scale(calc(1 + (1 - var(--e)) * 0.45));
+    transition: transform 0.45s var(--ease);
+  }
+  .hero-head-end {
+    inset-inline-start: calc(50% + var(--pw) / 2 + 2.6vw);
+    opacity: clamp(0, (var(--e) - 0.5) * 3, 1);
+    transform: translate(calc(var(--dir) * (1 - var(--e)) * 6vw), -50%);
+    transition: transform 0.45s var(--ease);
+  }
+
+  /* خط‌های راهنمای مدادی دور جای برگه، که یک بار پس از بارگذاری کشیده می‌شوند. */
+  .hero-guide {
+    position: absolute;
+    background: currentColor;
+  }
+  .hero-guide-v {
+    top: 7vh;
+    bottom: 7vh;
+    width: 1px;
+    transform: scaleY(var(--ld, 0));
+    transition: transform 1.6s var(--ease) var(--delay);
+  }
+  .hero-guide-h {
+    inset-inline: 3vw;
+    height: 1px;
+    transform: scaleX(var(--ld, 0));
+    transition: transform 1.8s var(--ease) var(--delay);
+  }
+  .hero-guide-circle {
+    top: var(--pt);
+    left: 50%;
+    aspect-ratio: 1;
+    width: calc(var(--pw) * 2.2);
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: none;
+    opacity: calc(var(--ld, 0) * 0.7);
+    transform: translate(-50%, -50%) scale(calc(0.9 + var(--ld, 0) * 0.1));
+    transition:
+      opacity 2.4s ease 1s,
+      transform 2.4s var(--ease) 1s;
+  }
+
+  /* ---------- ۱. نوشتن ---------- */
+
+  .write-stage {
+    --in: clamp(0, var(--p) / 0.12, 1);
+    --ta: clamp(0, (var(--p) - 0.12) / 0.22, 1);
+    --cm: clamp(0, (var(--p) - 0.36) / 0.08, 1);
+    --st: clamp(0, (var(--p) - 0.48) / 0.08, 1);
+    --ti: clamp(0, (var(--p) - 0.56) / 0.2, 1);
+    --cl: clamp(0, (var(--p) - 0.8) / 0.08, 1);
+  }
+
+  .write-title {
+    font-weight: calc(200 + var(--in) * 140);
+    transition: font-weight 0.3s;
+  }
+
+  .write-paper {
+    position: absolute;
+    inset-inline-start: 5vw;
+    top: calc(10vh + 17vw + 150px);
+    width: 90vw;
+    height: 120vh;
+    transform-origin: top right;
+    transform: translateY(calc((1 - var(--in)) * 14vh)) rotate(calc(var(--dir) * -1.2deg)) scale(calc(0.94 + var(--in) * 0.06));
+    border-radius: 3px;
+    background: #fff;
+    padding: 6vw;
+    font-size: 14px;
+    line-height: 1.75;
+    color: oklch(0.28 0.01 95);
+    box-shadow: var(--l-paper-shadow);
+    transition: transform 0.5s var(--ease);
+
+    @media (width >= 900px) {
+      inset-inline-start: 42vw;
+      top: 14vh;
+      width: 60vw;
+      padding: 4.5vw 5vw;
+      font-size: clamp(15px, 1.3vw, 20px);
+    }
+  }
+
+  /* خط اول: کم‌کم خط می‌خورد، از راست به چپ. */
+  .write-struck {
+    background-image: linear-gradient(oklch(0.55 0.17 27), oklch(0.55 0.17 27));
+    background-repeat: no-repeat;
+    background-position: 100% 60%;
+    background-size: calc(var(--st) * 100%) 2px;
+    box-decoration-break: clone;
+    color: color-mix(in oklch, oklch(0.28 0.01 95), oklch(0.55 0.15 27) calc(var(--st) * 70%));
+  }
+  .write-old {
+    max-height: calc((1 - var(--cl)) * 8em);
+    overflow: hidden;
+    opacity: calc(1 - var(--cl));
+  }
+  .write-new {
+    max-height: calc(clamp(0, var(--ti) * 40, 1) * 8em);
+    overflow: hidden;
+  }
+  /* حرف‌های جمله‌ی تازه: تا تأیید نشده، زمینه‌ی سبز و زیرخط دارند. */
+  .typed-suggestion {
+    background: color-mix(in oklch, oklch(0.93 0.05 150) calc((1 - var(--cl)) * 100%), transparent);
+    text-decoration: underline 2px color-mix(in oklch, oklch(0.5 0.1 150) calc((1 - var(--cl)) * 100%), transparent);
+    text-underline-offset: 0.35em;
+  }
+  .write-note {
+    opacity: var(--cm);
+    transform: translateX(calc(var(--dir) * (1 - var(--cm)) * 30px));
+    transition: transform 0.4s var(--ease);
+  }
+
+  /* ---------- ۲. طراحی ---------- */
+
+  .design-stage {
+    --dpt: 55%;
+    --pw: min(42vw, 28vh);
+    --w1: clamp(0, (var(--p) - 0.1) / 0.1, 1);
+    --w2: clamp(0, (var(--p) - 0.26) / 0.1, 1);
+    --w3: clamp(0, (var(--p) - 0.42) / 0.1, 1);
+    --w4: clamp(0, (var(--p) - 0.58) / 0.1, 1);
+    --z: clamp(0, (var(--p) - 0.76) / 0.16, 1);
+
+    @media (width >= 900px) {
+      --dpt: 57%;
+      --pw: min(24vw, 40vh);
+    }
+  }
+
+  .design-zoom {
+    transform: translate(-50%, calc(-50% - var(--z) * 4vh)) scale(calc(1 - var(--z) * (1 - var(--smin, 0.5))));
+    will-change: transform;
+    transition: transform 0.35s var(--ease);
+  }
+  .design-mini {
+    transform: translateY(calc((1 - var(--z)) * var(--rise)));
+    will-change: transform;
+    transition: transform 0.5s var(--ease);
+  }
+  /* هر قالب تازه از چپ به راست روی برگه کشیده می‌شود: پنجره‌ای بریده جابه‌جا می‌شود، نه خود برگه. */
+  .design-wipe-window {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    transform: translateX(calc(var(--dir) * (1 - var(--w)) * var(--pw)));
+    will-change: transform;
+  }
+  .design-wipe-content {
+    position: absolute;
+    inset: 0;
+    transform: translateX(calc(var(--dir) * (var(--w) - 1) * var(--pw)));
+    will-change: transform;
+  }
+  .design-wipe-line {
+    position: absolute;
+    top: -6%;
+    bottom: -6%;
+    right: 0;
+    width: 2px;
+    margin-right: -1px;
+    background: var(--l-ink);
+    opacity: calc(clamp(0, var(--w) * 30, 1) * clamp(0, (1 - var(--w)) * 30, 1));
+    transform: translateX(calc(var(--dir) * (1 - var(--w)) * var(--pw)));
+    will-change: transform, opacity;
+  }
+
+  /* ---------- ۳. زبان ---------- */
+
+  .lang-stage {
+    --sp: clamp(0, (var(--p) - 0.06) / 0.8, 1);
+    --sv: clamp(0, var(--p) / 0.24, 1);
+    --lo: clamp(0, (var(--p) - 0.04) * 10, 1);
+    --chk: var(--sp);
+    --dw: calc(clamp(0, (var(--sp) - 0.42) * 20, 1) * (1 - clamp(0, (var(--sp) - 0.72) * 20, 1)));
+    --pw: 48vw;
+
+    @media (width >= 900px) {
+      --pw: min(28vw, 52vh);
+    }
+  }
+
+  /* ذره‌بین: همان برگه به انگلیسی، از درون دایره‌ای در (--lx, --ly). */
+  .lang-lens {
+    background-color: oklch(0.2 0.03 160);
+    background-image:
+      repeating-linear-gradient(0deg, oklch(0.6 0.1 150 / 0.1) 0 1px, transparent 1px 4cqw),
+      repeating-linear-gradient(90deg, oklch(0.6 0.1 150 / 0.1) 0 1px, transparent 1px 4cqw);
+    clip-path: circle(17cqw at var(--lx, 50%) var(--ly, 16%));
+
+    & .paper-sheet {
+      background: transparent;
+    }
+    & .paper-sheet * {
+      color: oklch(0.86 0.08 150) !important;
+      background-color: transparent !important;
+      border-color: oklch(0.6 0.1 150 / 0.45) !important;
+    }
+    & .paper-sheet h3,
+    & .paper-sheet header > span:first-child {
+      color: oklch(0.94 0.12 150) !important;
+    }
+  }
+
+  /* ---------- ۴. چیدمان ---------- */
+
+  .arrange-stage {
+    --sw: clamp(0, var(--p) / 0.14, 1);
+    --t1: clamp(0, (var(--p) - 0.14) / 0.1, 1);
+    --t2: clamp(0, (var(--p) - 0.26) / 0.1, 1);
+    --t3: clamp(0, (var(--p) - 0.38) / 0.1, 1);
+    --t4: clamp(0, (var(--p) - 0.5) / 0.1, 1);
+    --kwa: var(--t1);
+    --kwb: var(--t2);
+    --kwc: var(--t3);
+    --kwd: var(--t4);
+    --cv: clamp(0, (var(--p) - 0.64) / 0.12, 1);
+    --ap: clamp(0, (var(--p) - 0.8) / 0.1, 1);
+    --cvx: -60%;
+    --pw: 38vw;
+
+    @media (width >= 900px) {
+      --cvx: -40%;
+      --pw: min(23vw, 42vh);
+    }
+  }
+
+  .posting-keyword {
+    border-radius: 4px;
+    padding-inline: 3px;
+    color: inherit;
+    background: color-mix(in oklch, var(--l-accent-soft) calc(var(--k, 0) * 100%), transparent);
+    box-shadow: 0 0 0 1px color-mix(in oklch, var(--l-accent) calc(var(--k, 0) * 60%), transparent);
+  }
+
+  /* ---------- ۵. خروجی ---------- */
+
+  .export-stage {
+    --f1: clamp(0, (var(--p) - 0.62) * 14, 1);
+    --f2: clamp(0, (var(--p) - 0.68) * 14, 1);
+    --f3: clamp(0, (var(--p) - 0.74) * 14, 1);
+    --fl: clamp(0, (var(--p) - 0.1) / 0.34, 1);
+    --nt: calc(clamp(0, var(--p) * 7, 1) * (1 - clamp(0, (var(--p) - 0.9) * 12, 1)));
+    --tu: clamp(0, (var(--p) - 0.34) / 0.22, 1);
+    --ui: clamp(0, (var(--p) - 0.58) * 8, 1);
+    --pw: min(40vw, 24vh);
+
+    /* رنگ‌هایی که با بالا آمدن شب (--nt) از رنگ روز به رنگ آسمان می‌روند. */
+    --night-ink: color-mix(in oklch, var(--l-ink), oklch(0.95 0.01 95) calc(var(--nt) * 100%));
+    --night-ink-2: color-mix(in oklch, var(--l-ink-2), oklch(0.9 0.01 95) calc(var(--nt) * 100%));
+    --night-on-ink: color-mix(in oklch, var(--l-bg), oklch(0.18 0.02 265) calc(var(--nt) * 100%));
+    --night-accent: color-mix(in oklch, var(--l-accent-text), oklch(0.8 0.13 150) calc(var(--nt) * 100%));
+    --night-label: color-mix(in oklch, var(--l-accent-text), oklch(0.75 0.09 150) calc(var(--nt) * 100%));
+    --night-chip: color-mix(in oklch, var(--l-ink-2), oklch(0.9 0.05 150) calc(var(--nt) * 100%));
+    --night-chip-line: color-mix(in oklch, var(--l-line-2), oklch(0.8 0.12 150) calc(var(--nt) * 100%));
+    --night-line: color-mix(in oklch, var(--l-line), oklch(1 0 0 / 0.14) calc(var(--nt) * 100%));
+    --night-fill: color-mix(in oklch, var(--l-hover), oklch(1 0 0 / 0.08) calc(var(--nt) * 100%));
+
+    @media (width >= 900px) {
+      --pw: min(22vw, 40vh);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      --nt: 1;
+    }
+  }
+
+  .export-page {
+    transform: translate(-50%, -50%) translate(calc(var(--dir) * var(--fl) * 46vw), calc(var(--fl) * var(--fl) * -70vh))
+      rotate(calc(var(--dir) * var(--fl) * 26deg)) scale(calc(1 - var(--fl) * 0.78));
+    opacity: calc(1 - clamp(0, (var(--fl) - 0.82) * 6, 1));
+    transition: transform 0.35s var(--ease);
+  }
+
+  /* ---------- رسید ---------- */
+
+  .receipt-paper {
+    mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 16px 100%;
+  }
+  .receipt-barcode {
+    background: repeating-linear-gradient(
+      90deg,
+      oklch(0.22 0.01 95) 0 2px,
+      transparent 2px 4px,
+      oklch(0.22 0.01 95) 4px 5px,
+      transparent 5px 8px,
+      oklch(0.22 0.01 95) 8px 11px,
+      transparent 11px 12px,
+      oklch(0.22 0.01 95) 12px 13px,
+      transparent 13px 17px
+    );
+  }
+
+  /* ---------- سرصفحه ---------- */
+
+  .header-taper {
+    background: linear-gradient(to bottom, var(--l-bg) 0%, color-mix(in oklch, var(--l-bg) 82%, transparent) 45%, transparent 100%);
+    backdrop-filter: blur(10px);
+    mask-image: linear-gradient(to bottom, #000 40%, transparent);
+  }
+
+  /* سایه‌ی محوِ چهارچوب پنجره که روی میز افتاده؛ فقط در حالت روشن. */
+  .window-shadow {
+    background-image:
+      linear-gradient(
+        90deg,
+        transparent 0 30%,
+        oklch(0.35 0.02 80 / 0.075) 30% 33%,
+        transparent 33% 63%,
+        oklch(0.35 0.02 80 / 0.075) 63% 66%,
+        transparent 66%
+      ),
+      linear-gradient(0deg, transparent 0 46%, oklch(0.35 0.02 80 / 0.065) 46% 49%, transparent 49%);
+    filter: blur(28px);
+    transform-origin: 100% 0;
+    transform: skewX(16deg) rotate(8deg);
+  }
+
+  /* ---------- پرسش‌ها ---------- */
+
+  /*
+   * هر پرسش یک <details> است: بازشدنش دور شماره را با مداد خط می‌کشد، زیرخطی را که با بردن نشانگر شروع شده بود
+   * کامل می‌کند، به‌علاوه را ضربدر می‌کند و پاسخ را مثل یادداشتی تاخورده از لبه‌اش باز می‌کند.
+   */
+  .faq-item {
+    interpolate-size: allow-keywords;
+
+    &::details-content {
+      block-size: 0;
+      overflow-y: clip;
+      transition:
+        block-size 0.45s var(--ease),
+        content-visibility 0.45s allow-discrete;
+    }
+    &[open]::details-content {
+      block-size: auto;
+    }
+
+    /* خط‌های مدادی: مسیرهایی با pathLength=1 که با dashoffset کشیده می‌شوند. */
+    & [data-stroke] {
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 1 2;
+      stroke-dashoffset: 1.05;
+      transition: stroke-dashoffset 0.5s var(--ease);
+    }
+    @media (hover: hover) {
+      & summary:hover [data-stroke='underline'] {
+        stroke-dashoffset: 0.62;
+      }
+    }
+    &[open] [data-stroke] {
+      stroke-dashoffset: 0;
+    }
+    &[open] [data-stroke='circle'] {
+      transition-duration: 0.7s;
+      transition-delay: 0.1s;
+    }
+
+    & [data-plus] {
+      transition: rotate 0.35s var(--ease);
+    }
+    &[open] [data-plus] {
+      rotate: 135deg;
+    }
+
+    & [data-note] {
+      transform-origin: 50% 0;
+      transform: perspective(900px) rotateX(-80deg) rotate(var(--tilt));
+      opacity: 0;
+      transition:
+        transform 0.55s var(--ease),
+        opacity 0.3s var(--ease);
+    }
+    &[open] [data-note] {
+      transform: perspective(900px) rotateX(0deg) rotate(var(--tilt));
+      opacity: 1;
+
+      @starting-style {
+        transform: perspective(900px) rotateX(-80deg) rotate(var(--tilt));
+        opacity: 0;
+      }
+    }
+    & [data-note]::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background: linear-gradient(to bottom, oklch(0.2 0.01 95 / 0.16), transparent 60%);
+      transition: opacity 0.6s var(--ease) 0.1s;
+    }
+    &[open] [data-note]::after {
+      opacity: 0;
+
+      @starting-style {
+        opacity: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      &::details-content,
+      & [data-stroke],
+      & [data-plus],
+      & [data-note],
+      & [data-note]::after {
+        transition: none;
+      }
+    }
+  }
+
+  /* ---------- پایان: واژه‌ی «برگ» که از خط افق بالا می‌آید و بازتابش در آب پایین می‌رود ---------- */
+
+  .endmark {
+    --r: clamp(0, (var(--p) - 0.15) / 0.7, 1);
+    container-type: inline-size;
+  }
+  /*
+   * اندازه‌ها از سنجه‌های قلم «امیری» درآمده‌اند: بالای جوهر ۰٫۸۸ و پایینش ۰٫۲۲ برابر اندازه‌ی قلم از خط کرسی است.
+   * با line-height ۱٫۳۷ خط کرسی ۰٫۹۳em پایین‌تر از بالای سطر می‌افتد، پس پایین‌ترین جوهر در ۱٫۱۵em است: همان‌جا خط آب.
+   */
+  .endmark-word {
+    font-family: var(--font-title);
+    font-weight: 700;
+    font-size: clamp(120px, 26cqw, 400px);
+    line-height: 1.37;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .endmark-up {
+    height: 1.15em;
+    overflow: hidden;
+
+    & > span {
+      display: block;
+      transform: translateY(calc((1 - var(--r)) * 100%));
+      transition: transform 0.35s var(--ease);
+    }
+  }
+  .endmark-down {
+    height: 0.62em;
+    overflow: hidden;
+    mask-image: linear-gradient(to bottom, oklch(0 0 0 / 0.6), transparent 95%);
+
+    & > span {
+      display: block;
+      /* پس از وارونه‌شدن، پایین‌ترین جوهر ۰٫۲۲em پایین‌تر از بالای سطر است؛ همین‌قدر بالا می‌رود تا به خط آب بچسبد. */
+      margin-top: -0.22em;
+      transform: scaleY(-1) translateY(calc((1 - var(--r)) * 100%));
+      transition: transform 0.35s var(--ease);
+    }
+  }
+}

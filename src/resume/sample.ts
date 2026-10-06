@@ -51,19 +51,19 @@ export function blankResume(): Resume {
 const d = (y: string, m = '') => ({ y, m })
 
 /**
- * رزومه‌ی نمونه. شخص و شرکت‌ها ساختگی‌اند و فقط برای نمایش قالب‌ها استفاده می‌شوند.
+ * رزومه‌ی نمونه با نام سازنده‌ی برگ. سوابق و شرکت‌ها ساختگی‌اند و فقط برای نمایش قالب‌ها استفاده می‌شوند.
  */
 export function sampleResume(): Resume {
   return {
     version: 1,
     basics: {
-      fullName: 'نگار رستمی',
+      fullName: 'حمید شیخی',
       headline: 'مهندس ارشد فرانت‌اند',
       photo: '',
-      email: 'negar.rostami@example.com',
+      email: 'hamid.shaikhy@example.com',
       phone: '۰۹۱۲ ۵۵۵ ۰۱۴۲',
       location: 'تهران',
-      website: 'negar.example',
+      website: 'hamid.example',
       birthDate: '۱۳۷۲/۰۶/۱۸',
       maritalStatus: 'متأهل',
       militaryStatus: '',
@@ -72,8 +72,8 @@ export function sampleResume(): Resume {
       custom: [],
     },
     profiles: [
-      { id: uid('pr'), network: 'linkedin', username: 'negar-rostami', url: '' },
-      { id: uid('pr'), network: 'github', username: 'negar-rostami', url: '' },
+      { id: uid('pr'), network: 'linkedin', username: 'hamid-shaikhy', url: '' },
+      { id: uid('pr'), network: 'github', username: 'hamidshaikhy', url: '' },
     ],
     sections: [
       emptySection('summary', {
@@ -141,12 +141,12 @@ export function sampleResume(): Resume {
       emptySection('projects', {
         items: [
           emptyItem({
-            title: 'کتابخانه‌ی تقویم شمسی',
+            title: 'برگ؛ رزومه‌ساز فارسی',
             subtitle: 'پروژه‌ی متن‌باز',
-            start: d('1400'),
+            start: d('1405'),
             current: true,
-            description: 'انتخابگر تاریخ شمسی برای React با پشتیبانی کامل از صفحه‌کلید و صفحه‌خوان؛ بیش از ۹۰۰ ستاره در گیت‌هاب.',
-            url: 'github.com/negar-rostami/taghvim',
+            description: 'رزومه‌ساز راست‌به‌چپ با ده قالب، تاریخ شمسی و خروجی PDF و Word؛ با React و TypeScript.',
+            url: 'github.com/hamidshaikhy/barg-resume-builder',
           }),
         ],
       }),
