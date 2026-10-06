@@ -257,5 +257,3 @@ cd barg-resume-builder
 npm install
 npm run dev
 ```
-
-The landing page's motion design is adapted from [Reactive Resume](https://github.com/reactive-resume/reactive-resume) (MIT). Designed and built by [Hamid Shaikhy](https://github.com/hamidshaikhy).
