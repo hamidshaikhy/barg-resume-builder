@@ -1,0 +1,60 @@
+@import 'tailwindcss';
+
+/*
+ * هویت بصری «برگ»: کاغذ سرد و روشن، جوهر سرمه‌ای تیره و لاجوردی به‌عنوان رنگ برند.
+ * تیترهای بزرگ با قلم نسخ «امیری» و متن و رابط با «وزیرمتن».
+ */
+@theme {
+  --font-sans: 'Vazirmatn Variable', Tahoma, sans-serif;
+  --font-title: 'Amiri', 'Noto Naskh Arabic Variable', 'Times New Roman', serif;
+
+  --color-ink: #111a2e;
+  --color-ink-2: #2a3550;
+  --color-muted: #5a6377;
+  --color-faint: #8a92a3;
+  --color-paper: #eceef2;
+  --color-paper-2: #e2e5eb;
+  --color-line: #d4d8e1;
+  --color-surface: #ffffff;
+  --color-brand: #1f3fa8;
+  --color-brand-dark: #17307f;
+  --color-brand-soft: #e7ecf9;
+  --color-danger: #a12a2a;
+}
+
+html {
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+[role='button'],
+summary,
+label[for] {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #c9d5f5;
+}
+
+/* نوار پیمایش باریک برای پنل‌ها */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #c3c9d6 transparent;
+}

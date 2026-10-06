@@ -1,0 +1,854 @@
+/*
+ * سبک برگه‌های رزومه.
+ * قاعده‌ی ثابت همه‌ی قالب‌ها: زمینه سفید، متن سیاه؛ رنگ (‎--a‎) فقط برای تیترها،
+ * خط‌ها و قاب‌ها. واحدها میلی‌متر و em هستند تا خروجی چاپی با پیش‌نمایش یکی باشد.
+ * فاصله‌ی عمودی بلوک‌ها با padding ساخته شده، نه margin، تا صفحه‌بند بتواند
+ * ارتفاع‌ها را ساده با هم جمع کند.
+ */
+
+.r-measure {
+  position: fixed;
+  top: 0;
+  left: -100000px;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.r-page {
+  --a: #1e3a5f;
+  --a-line: #8a9ab0;
+  --a-soft: #c9d1dc;
+  --a-tint: #f0f2f5;
+  --r-font: 'Vazirmatn Variable', Tahoma, sans-serif;
+  --r-fs: 9.4pt;
+  --r-lh: 1.75;
+  --r-m: 15mm;
+  --ink: #000;
+  --ink-2: #262626;
+  --rule: #d9d9d9;
+
+  position: relative;
+  box-sizing: border-box;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  width: 210mm;
+  height: 297mm;
+  padding: var(--r-m);
+  overflow: hidden;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--r-font);
+  font-size: var(--r-fs);
+  font-weight: 400;
+  line-height: var(--r-lh);
+  text-align: start;
+  overflow-wrap: anywhere;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.r-page *,
+.r-page *::before,
+.r-page *::after {
+  box-sizing: border-box;
+}
+
+.r-page h1,
+.r-page h2,
+.r-page p,
+.r-page ul {
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.r-page ul {
+  list-style: none;
+}
+
+.r-page a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.r-page b {
+  font-weight: 700;
+}
+
+.r-deco {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.r-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.r-col {
+  min-width: 0;
+}
+
+.r-col-main {
+  flex: 1 1 0;
+}
+
+.r-block {
+  display: flow-root;
+  position: relative;
+}
+
+.r-placeholder {
+  color: #b5b5b5 !important;
+}
+
+.r-pageno {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 4.5mm;
+  text-align: center;
+  font-size: 0.8em;
+  line-height: 1;
+  color: #777;
+}
+
+/* ---------- سربرگ ---------- */
+
+.r-head {
+  flex: none;
+  margin-bottom: 1.5em;
+}
+
+.r-name {
+  font-size: 2.45em !important;
+  font-weight: 800 !important;
+  line-height: 1.3;
+}
+
+.r-headline {
+  font-size: 1.16em !important;
+  font-weight: 500 !important;
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+.r-photo {
+  flex: none;
+  display: block;
+  width: 27mm;
+  height: 27mm;
+  object-fit: cover;
+}
+.r-photo--circle {
+  border-radius: 50%;
+}
+.r-photo--rounded {
+  border-radius: 2.5mm;
+}
+
+.r-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25em 1.5em;
+}
+.r-contact li {
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+  min-width: 0;
+}
+.r-ico {
+  flex: none;
+  width: 1.05em;
+  height: 1.05em;
+  color: var(--a);
+}
+
+.r-personal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15em 1.6em;
+  font-size: 0.96em;
+}
+.r-personal-k {
+  color: #3a3a3a;
+}
+
+.r-head-id {
+  display: flex;
+  align-items: center;
+  gap: 5mm;
+  min-width: 0;
+}
+.r-head-names {
+  min-width: 0;
+}
+
+.r-head--center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65em;
+  text-align: center;
+}
+.r-head--center .r-head-id {
+  flex-direction: column;
+  gap: 0.7em;
+}
+.r-head--center .r-contact,
+.r-head--center .r-personal {
+  justify-content: center;
+}
+
+.r-head--start .r-contact {
+  margin-top: 0.95em;
+}
+.r-head--start .r-personal {
+  margin-top: 0.4em;
+}
+
+.r-head--split,
+.r-head--band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8mm;
+  row-gap: 0.9em;
+}
+.r-head--split .r-contact,
+.r-head--band .r-contact {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0.2em;
+}
+.r-head--split .r-personal,
+.r-head--band .r-personal {
+  grid-column: 1 / -1;
+}
+
+/* ---------- تیتر بخش ---------- */
+
+.r-b-stitle {
+  padding-top: 1.3em;
+  padding-bottom: 0.6em;
+}
+.r-col > .r-b-stitle:first-child {
+  padding-top: 0;
+}
+
+.r-stitle {
+  font-size: 1.2em !important;
+  font-weight: 800 !important;
+  line-height: 1.5;
+  color: var(--a);
+}
+
+/* ---------- موردهای سابقه ---------- */
+
+.r-ehead {
+  padding-bottom: 0.15em;
+}
+.r-erow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.2em;
+}
+.r-etitle {
+  font-size: 1.06em;
+  font-weight: 700;
+  min-width: 0;
+}
+.r-edate {
+  flex: none;
+  font-size: 0.94em;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.r-esub {
+  display: flex;
+  flex-wrap: wrap;
+  color: var(--ink-2);
+}
+.r-sep {
+  flex: none;
+  align-self: center;
+  width: 1px;
+  height: 0.85em;
+  margin-inline: 0.65em;
+  background: #9a9a9a;
+}
+.r-eextra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.4em;
+  font-size: 0.95em;
+  color: var(--ink-2);
+}
+
+.r-desc {
+  padding-bottom: 0.18em;
+  text-align: justify;
+}
+.r-bullet {
+  position: relative;
+  padding-inline-start: 1.15em;
+  padding-bottom: 0.12em;
+}
+.r-bullet::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0.28em;
+  top: calc(var(--r-lh) * 0.5em - 0.16em);
+  width: 0.32em;
+  height: 0.32em;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.r-elink {
+  font-size: 0.94em;
+  color: var(--ink-2);
+}
+.r-elink a {
+  color: var(--ink);
+  border-bottom: 1px solid var(--a-line);
+}
+
+.r-entry-end {
+  padding-bottom: 0.95em;
+}
+.r-sec-end {
+  padding-bottom: 0;
+}
+
+/* ---------- برچسب‌ها، سطح‌ها، زبان ---------- */
+
+.r-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42em 0.45em;
+  padding-bottom: 0.2em;
+}
+.r-chips--entry {
+  padding-top: 0.3em;
+}
+.r-chip {
+  padding: 0.08em 0.7em;
+  border: 1px solid var(--a-line);
+  border-radius: 0.35em;
+  font-size: 0.93em;
+  line-height: 1.7;
+  white-space: nowrap;
+}
+
+.r-skillgroup {
+  padding-top: 0.3em;
+  padding-bottom: 0.3em;
+}
+.r-skillgroup-name {
+  font-weight: 700;
+  padding-bottom: 0.25em;
+}
+.r-skillline {
+  text-align: start;
+}
+
+.r-grid {
+  display: grid;
+  column-gap: 8mm;
+}
+.r-meter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  padding-bottom: 0.22em;
+}
+.r-meter-name {
+  min-width: 0;
+}
+.r-bar {
+  flex: none;
+  display: block;
+  width: 40%;
+  height: 1.3mm;
+  border-radius: 1mm;
+  background: var(--a-soft);
+  overflow: hidden;
+}
+.r-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 1mm;
+  background: var(--a);
+}
+.r-dots {
+  flex: none;
+  display: flex;
+  gap: 1mm;
+}
+.r-dots i {
+  width: 2mm;
+  height: 2mm;
+  border-radius: 50%;
+  border: 1px solid var(--a);
+}
+.r-dots i.on {
+  background: var(--a);
+}
+
+.r-lang {
+  padding-bottom: 0.45em;
+}
+.r-lang-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1em;
+}
+.r-lang-name {
+  font-weight: 700;
+}
+.r-lang-level {
+  color: var(--ink-2);
+}
+.r-lang-four {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.5em;
+  font-size: 0.94em;
+  color: var(--ink-2);
+}
+
+.r-ref {
+  padding-bottom: 0.6em;
+}
+.r-ref-line {
+  font-size: 0.95em;
+  color: var(--ink-2);
+}
+.r-pair {
+  padding-bottom: 0.2em;
+}
+.r-pair-k {
+  color: #3a3a3a;
+}
+
+/* =====================================================================
+   ۱. کلاسیک — سربرگ وسط‌چین، تیتر با خط زیرین
+   ===================================================================== */
+
+.r-page[data-t='classic'] .r-head {
+  padding-bottom: 1.2em;
+  border-bottom: 1px solid var(--a);
+}
+.r-page[data-t='classic'] .r-stitle {
+  padding-bottom: 0.2em;
+  border-bottom: 1px solid var(--a-line);
+}
+
+/* =====================================================================
+   ۲. مدرن — نوار رنگی بالای برگه، تیتر با نشانه و خط کشیده
+   ===================================================================== */
+
+.r-page[data-t='modern'] .r-deco::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 3mm;
+  background: var(--a);
+}
+.r-page[data-t='modern'] .r-name {
+  font-size: 2.6em !important;
+}
+.r-page[data-t='modern'] .r-headline {
+  color: var(--a);
+  font-weight: 600 !important;
+}
+.r-page[data-t='modern'] .r-head {
+  padding-bottom: 1.15em;
+  border-bottom: 1px solid var(--rule);
+}
+.r-page[data-t='modern'] .r-stitle {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+}
+.r-page[data-t='modern'] .r-stitle::before {
+  content: '';
+  flex: none;
+  width: 0.5em;
+  height: 0.5em;
+  background: var(--a);
+}
+.r-page[data-t='modern'] .r-stitle::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--a-soft);
+}
+.r-page[data-t='modern'] .r-chip {
+  border-color: transparent;
+  background: var(--a-tint);
+}
+
+/* =====================================================================
+   ۳. ستونی — ستون باریک کناری با خط جداکننده
+   ===================================================================== */
+
+.r-page[data-t='sidebar'] .r-col-side {
+  flex: none;
+  width: 33%;
+  padding-inline-end: 6mm;
+  margin-inline-end: 6mm;
+  border-inline-end: 1px solid var(--a-line);
+  font-size: 0.96em;
+}
+.r-page[data-t='sidebar'] .r-b-name {
+  padding-bottom: 1.2em;
+}
+.r-page[data-t='sidebar'] .r-headline {
+  color: var(--a);
+  font-weight: 600 !important;
+}
+.r-page[data-t='sidebar'] .r-b-photo {
+  padding-bottom: 1.4em;
+}
+.r-page[data-t='sidebar'] .r-photo {
+  width: 32mm;
+  height: 32mm;
+  margin-inline: auto;
+}
+.r-page[data-t='sidebar'] .r-col-side .r-b-photo + .r-b-stitle {
+  padding-top: 0;
+}
+.r-page[data-t='sidebar'] .r-contact {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0.3em;
+}
+.r-page[data-t='sidebar'] .r-personal {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0.15em;
+}
+.r-page[data-t='sidebar'] .r-stitle {
+  padding-bottom: 0.2em;
+  border-bottom: 0.5mm solid var(--a);
+}
+.r-page[data-t='sidebar'] .r-col-side .r-stitle {
+  font-size: 1.1em !important;
+}
+
+/* =====================================================================
+   ۴. سربرگ — نوار سربرگ با زمینه‌ی کم‌رنگ و خط رنگی
+   ===================================================================== */
+
+.r-page[data-t='band'] .r-head {
+  margin: calc(var(--r-m) * -1) calc(var(--r-m) * -1) 1.7em;
+  padding: calc(var(--r-m) * 0.85) var(--r-m) 1.25em;
+  background: var(--a-tint);
+  border-bottom: 1mm solid var(--a);
+}
+.r-page[data-t='band'] .r-headline {
+  color: var(--a);
+  font-weight: 600 !important;
+}
+.r-page[data-t='band'] .r-stitle {
+  padding-inline-start: 0.65em;
+  border-inline-start: 1mm solid var(--a);
+  line-height: 1.25;
+}
+
+/* =====================================================================
+   ۵. خط زمان — تاریخ بالای هر مورد، ریل نقطه‌چین کنار سوابق
+   ===================================================================== */
+
+.r-page[data-t='timeline'] .r-name {
+  color: var(--a);
+}
+.r-page[data-t='timeline'] .r-head {
+  padding-bottom: 1.2em;
+  border-bottom: 1px dashed var(--a-line);
+}
+.r-page[data-entry='timeline'] .r-in-entry {
+  padding-inline-start: 6mm;
+}
+.r-page[data-entry='timeline'] .r-in-entry::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 1.15mm;
+  top: 0;
+  bottom: 0;
+  border-inline-start: 1px dashed var(--a-line);
+}
+.r-page[data-entry='timeline'] .r-entry-start::before {
+  top: 0.75em;
+}
+.r-page[data-entry='timeline'] .r-entry-start::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.5em;
+  width: 2.6mm;
+  height: 2.6mm;
+  border: 0.65mm solid var(--a);
+  border-radius: 50%;
+  background: #fff;
+}
+.r-page[data-entry='timeline'] .r-erow {
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 0.3em;
+}
+.r-page[data-entry='timeline'] .r-edate {
+  padding: 0 0.8em;
+  border-radius: 1em;
+  background: var(--a-tint);
+  color: var(--a);
+  font-size: 0.88em;
+  font-weight: 600;
+  line-height: 1.8;
+}
+.r-page[data-t='timeline'] .r-chip {
+  border-color: transparent;
+  border-radius: 1em;
+  background: var(--a-tint);
+}
+
+/* =====================================================================
+   ۶. قاب — قاب دوخطی دور برگه، تیتر وسط‌چین
+   ===================================================================== */
+
+.r-page[data-t='framed'] {
+  padding: calc(var(--r-m) + 4mm);
+}
+.r-page[data-t='framed'] .r-deco::before {
+  content: '';
+  position: absolute;
+  inset: 6mm;
+  border: 1px solid var(--a);
+}
+.r-page[data-t='framed'] .r-deco::after {
+  content: '';
+  position: absolute;
+  inset: 7.2mm;
+  border: 1px solid var(--a-soft);
+}
+.r-page[data-t='framed'] .r-pageno {
+  bottom: 9mm;
+}
+.r-page[data-t='framed'] .r-headline {
+  color: var(--a);
+}
+.r-page[data-t='framed'] .r-head::after {
+  content: '';
+  width: 22mm;
+  height: 1px;
+  margin-top: 0.5em;
+  background: var(--a);
+}
+.r-page[data-t='framed'] .r-stitle {
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+}
+.r-page[data-t='framed'] .r-stitle::before,
+.r-page[data-t='framed'] .r-stitle::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--a-soft);
+}
+
+/* =====================================================================
+   ۷. دوستونه — سربرگ تمام‌عرض، ستون فرعی در انتهای سطر
+   ===================================================================== */
+
+.r-page[data-t='split'] .r-head {
+  padding-bottom: 1.15em;
+  border-bottom: 0.7mm solid var(--a);
+}
+.r-page[data-t='split'] .r-col-side {
+  order: 2;
+  flex: none;
+  width: 34%;
+  padding-inline-start: 6mm;
+  margin-inline-start: 6mm;
+  border-inline-start: 1px solid var(--rule);
+  font-size: 0.96em;
+}
+.r-page[data-t='split'] .r-stitle {
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink);
+}
+.r-page[data-t='split'] .r-stitle > span {
+  display: inline-block;
+  padding-bottom: 0.18em;
+  margin-bottom: -1px;
+  border-bottom: 0.7mm solid var(--a);
+  color: var(--a);
+}
+
+/* =====================================================================
+   ۸. مینیمال — عنوان بخش‌ها در حاشیه
+   ===================================================================== */
+
+.r-page[data-t='minimal'] {
+  --labelcol: 38mm;
+}
+.r-page[data-t='minimal'] .r-name {
+  font-size: 2.7em !important;
+  font-weight: 300 !important;
+}
+.r-page[data-t='minimal'] .r-headline {
+  color: var(--a);
+}
+.r-page[data-t='minimal'] .r-head {
+  margin-bottom: 1.3em;
+  padding-bottom: 1.3em;
+  border-bottom: 1px solid var(--rule);
+}
+.r-page[data-layout='labels'] .r-col-main > .r-block {
+  padding-inline-start: var(--labelcol);
+}
+.r-page[data-layout='labels'] .r-b-stitle {
+  height: 2.5em;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.r-page[data-layout='labels'] .r-b-stitle::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 1.2em;
+  border-top: 1px solid var(--rule);
+}
+.r-page[data-layout='labels'] .r-col > .r-b-stitle:first-child {
+  height: 0;
+}
+.r-page[data-layout='labels'] .r-col > .r-b-stitle:first-child::before {
+  display: none;
+}
+.r-page[data-layout='labels'] .r-stitle {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 100%;
+  width: calc(var(--labelcol) - 5mm);
+  font-size: 1em !important;
+  font-weight: 700 !important;
+  line-height: var(--r-lh);
+}
+.r-page[data-t='minimal'] .r-etitle {
+  font-weight: 600;
+}
+
+/* =====================================================================
+   ۹. مدیریتی — نام درشت، تیتر نواری
+   ===================================================================== */
+
+.r-page[data-t='executive'] .r-name {
+  font-size: 2.9em !important;
+  font-weight: 900 !important;
+  line-height: 1.25;
+}
+.r-page[data-t='executive'] .r-headline {
+  font-size: 1.25em !important;
+}
+.r-page[data-t='executive'] .r-contact {
+  margin-top: 1.1em;
+  padding-block: 0.55em;
+  border-block: 1px solid var(--a);
+}
+.r-page[data-t='executive'] .r-personal {
+  margin-top: 0.55em;
+}
+.r-page[data-t='executive'] .r-stitle {
+  padding: 0.22em 0.8em;
+  border-inline-start: 1.2mm solid var(--a);
+  background: var(--a-tint);
+  font-size: 1.12em !important;
+}
+.r-page[data-t='executive'] .r-edate {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* =====================================================================
+   ۱۰. آکادمیک — قلم نسخ، خط دوتایی، تاریخ در ستون جدا
+   ===================================================================== */
+
+.r-page[data-t='academic'] .r-head {
+  padding-bottom: 1.1em;
+  border-bottom: 3px double var(--a);
+}
+.r-page[data-t='academic'] .r-name {
+  font-weight: 700 !important;
+}
+.r-page[data-t='academic'] .r-stitle {
+  padding-bottom: 0.15em;
+  border-bottom: 3px double var(--a-line);
+  font-weight: 700 !important;
+}
+.r-page[data-entry='datecol'] .r-in-entry {
+  padding-inline-start: 41mm;
+}
+.r-page[data-entry='datecol'] .r-edate {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.12em;
+  width: 39mm;
+  white-space: normal;
+  font-size: 0.9em;
+  color: var(--ink);
+}
+
+/* ---------- خروجی و چاپ ---------- */
+
+#export-root {
+  position: fixed;
+  top: 0;
+  left: -100000px;
+  pointer-events: none;
+}
+#export-root .r-placeholder {
+  visibility: hidden;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+  #root {
+    display: none !important;
+  }
+  .r-measure {
+    position: absolute;
+  }
+  #export-root {
+    position: static;
+  }
+  #export-root .r-page {
+    break-after: page;
+    break-inside: avoid;
+    height: 296.9mm;
+  }
+  #export-root .r-page:last-child {
+    break-after: auto;
+  }
+}
